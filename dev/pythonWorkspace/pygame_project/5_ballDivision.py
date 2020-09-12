@@ -82,10 +82,19 @@ balloons.append({
 weaponToRemove = -1
 balloonToRemove = -1
 
+#font
+gameFont = pygame.font.Font(None, 40)
+totalTime = 100
+startTicks = pygame.time.get_ticks()
+
+
+#게임 종료 메세지
+gameResult = "GAME OVER"
+
 #이벤트 루프
 running = True #게임이 진행중인가
 while running:
-    dt = clock.tick(60) #dt = delta  = 초당 프레임 수 
+    dt = clock.tick(30) #dt = delta  = 초당 프레임 수 
 
     # 2. 이벤트 처리 (키보드, 마우스 등)
  
@@ -176,6 +185,36 @@ while running:
             if weaponRect.colliderect(balloonRect):
                 weaponToRemove = weaponIndex #해당 무기 없애기위한 값 설정
                 balloonToRemove = balloonIndex
+                
+                #가장 작은 공이 아니라면 다음 단계 공 둘로 나눠주기
+                if balloonImageIndex < 3:
+                    #현재 공 크기 정보
+                    balloonWidth = balloonRect.size[0]
+                    balloonHeight = balloonRect.size[1]
+
+                    #나눠진 공 정보
+                    smallBalloonRect = balloonImages[balloonImageIndex + 1].get_rect()
+                    smallBalloonWidth = smallBalloonRect.size[0]
+                    smallBalloonHeight = smallBalloonRect.size[1]
+                    #왼쪽으로 갈 공
+                    balloons.append({
+                        "posX" : balloonPosX + (balloonWidth / 2) - (smallBalloonWidth / 2),
+                        "posY" : balloonPosY + (balloonHeight / 2) - (smallBalloonHeight / 2),
+                        "imageIndex" : balloonImageIndex + 1,
+                        "toX" : -3, #공의 x축 이동 방향
+                        "toY" : -6, #공의 y축 이동 방향
+                        "initSpeedY" : balloonSpeedY[balloonImageIndex + 1] #y 최초 속도
+                    })
+
+                    #오른쪽으로 갈 공
+                    balloons.append({
+                        "posX" : balloonPosX + (balloonWidth / 2) - (smallBalloonWidth / 2),
+                        "posY" : balloonPosY + (balloonHeight / 2) - (smallBalloonHeight / 2),
+                        "imageIndex" : balloonImageIndex + 1,
+                        "toX" : 3, #공의 x축 이동 방향
+                        "toY" : -6, #공의 y축 이동 방향
+                        "initSpeedY" : balloonSpeedY[balloonImageIndex + 1] #y 최초 속도
+                    })
                 break
 
     #충돌 된 공 무기 없애기
@@ -186,6 +225,11 @@ while running:
     if weaponToRemove > -1:
         del weapons[weaponToRemove]
         weaponToRemove = -1
+
+    #모든 공을 없앤 경우
+    if len(balloons) == 0:
+        gameResult = "MISSION COMPLETE"
+        running = False
 
 
     # 5. 화면에 그리기
@@ -202,8 +246,23 @@ while running:
     screen.blit(stage, (0,screenHeight - stageHeight))
     screen.blit(character, (characterXPos, characterYPos))
 
+    #시간계산
+    elapsedTime = (pygame.time.get_ticks() - startTicks) / 1000
+    timer = gameFont.render("Time: {0}".format(int(totalTime - elapsedTime)), True, (255, 255, 255))
+    screen.blit(timer, (10, 10))
+
+    if totalTime - elapsedTime <= 0:
+        gameResult = "TIME OVER"
+        running = False
 
     pygame.display.update() #게임화면 다시 그리기
-    
+
+
+msg = gameFont.render(gameResult, True, (255,255,0))
+msgRect = msg.get_rect(center = (int(screenWidth / 2) , int(screenHeight / 2)))
+screen.blit(msg, msgRect)
+pygame.display.update()
+
+pygame.time.delay(2000)
 # 6. 게임 종료
 pygame.quit()
