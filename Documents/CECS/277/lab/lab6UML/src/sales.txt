@@ -1,0 +1,4 @@
+Peter;Dinner;1500;30/03/2016
+Bill;Conference;100.00;29/03/2016
+Scott;Lodging;1200;29/03/2016
+
